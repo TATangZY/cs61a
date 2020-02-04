@@ -2,6 +2,7 @@
 
 # Lambda Functions
 
+
 def lambda_curry2(func):
     """
     Returns a Curried version of a two-argument function FUNC.
@@ -18,7 +19,8 @@ def lambda_curry2(func):
     3
     """
     "*** YOUR CODE HERE ***"
-    return ______
+    return lambda x: lambda y: func(x, y)
+
 
 def count_cond(condition):
     """Returns a function with one parameter N that counts all the numbers from
@@ -48,6 +50,14 @@ def count_cond(condition):
     8
     """
     "*** YOUR CODE HERE ***"
+    def count_func(n):
+        count = 0
+        for i in range(1, n + 1):
+            if lambda_curry2(condition)(n)(i):
+                count += 1
+        return count
+    return count_func
+
 
 def both_paths(sofar="S"):
     """
@@ -61,3 +71,11 @@ def both_paths(sofar="S"):
     SLL
     """
     "*** YOUR CODE HERE ***"
+    print(sofar)
+
+    def left(path=sofar + "L"):
+        return both_paths(path)
+
+    def right(path=sofar + "R"):
+        return both_paths(path)
+    return left, right
