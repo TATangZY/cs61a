@@ -18,6 +18,10 @@ def skip_add(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    if n == 1 or n == 2:
+        return n
+    
+    return n + skip_add(n - 2)
 
 def summation(n, term):
 
@@ -39,6 +43,10 @@ def summation(n, term):
     """
     assert n >= 1
     "*** YOUR CODE HERE ***"
+    if n == 1:
+        return term(n)
+    
+    return term(n) + summation(n - 1, term)
 
 def gcd(a, b):
     """Returns the greatest common divisor of a and b.
@@ -54,6 +62,12 @@ def gcd(a, b):
     40
     """
     "*** YOUR CODE HERE ***"
+    if a == 1 or b == 1:
+        return 1
+    if b == 0:
+        return a
+    
+    return gcd(b, a % b)
 
 def paths(m, n):
     """Return the number of paths from one corner of an
@@ -69,6 +83,9 @@ def paths(m, n):
     1
     """
     "*** YOUR CODE HERE ***"
+    if m == 1 or n == 1:
+        return 1
+    return paths(m - 1, n) + paths(m, n -1 )
 
 
 def max_subseq(n, l):
@@ -116,3 +133,16 @@ def max_subseq(n, l):
     5
     """
     "*** YOUR CODE HERE ***"
+    n = str(n)
+    if l == 0:
+        return 0
+    if n == '':
+        return ''
+    if l >= len(n):
+        return int(n)
+    if l == 1:
+        return int(max(n))
+    mid = str(max_subseq(n, 1))
+    left = n[:n.find(mid)]
+    right = n[n.find(mid) + 1:]
+    return max(int(str(max_subseq(left, l - 1)) + mid), int(mid + str(max_subseq(right, l - 1))))
