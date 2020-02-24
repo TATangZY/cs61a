@@ -17,6 +17,14 @@ def choose(paragraphs, select, k):
     """
     # BEGIN PROBLEM 1
     "*** YOUR CODE HERE ***"
+    paragraphList = []
+    for paragraph in paragraphs:
+        if select(paragraph):
+            paragraphList.append(paragraph)
+    try:
+        return paragraphList[k]
+    except IndexError:
+        return ''
     # END PROBLEM 1
 
 
@@ -33,6 +41,13 @@ def about(topic):
     assert all([lower(x) == x for x in topic]), 'topics should be lowercase.'
     # BEGIN PROBLEM 2
     "*** YOUR CODE HERE ***"
+    def select(papragraph):
+        words = split(remove_punctuation(lower(papragraph)))
+        for word in words:
+            if word in topic:
+                return True
+        return False
+    return select
     # END PROBLEM 2
 
 
@@ -53,10 +68,18 @@ def accuracy(typed, reference):
     >>> accuracy('', 'Cute Dog.')
     0.0
     """
+    if typed == '' or reference == '':
+        return 0.0
     typed_words = split(typed)
     reference_words = split(reference)
     # BEGIN PROBLEM 3
     "*** YOUR CODE HERE ***"
+    length = min(len(typed_words), len(reference_words))
+    count = 0
+    for i in range(length):
+        if typed_words[i] == reference_words[i]:
+            count += 1
+    return count / len(typed_words) * 100
     # END PROBLEM 3
 
 
@@ -65,6 +88,7 @@ def wpm(typed, elapsed):
     assert elapsed > 0, 'Elapsed time must be positive'
     # BEGIN PROBLEM 4
     "*** YOUR CODE HERE ***"
+    return len(typed) / 5 / (elapsed / 60)
     # END PROBLEM 4
 
 
@@ -75,6 +99,20 @@ def autocorrect(user_word, valid_words, diff_function, limit):
     """
     # BEGIN PROBLEM 5
     "*** YOUR CODE HERE ***"
+    if user_word in valid_words:
+        return user_word
+
+    waitList = []
+    minDiff = limit
+    for word in valid_words:
+        diff = diff_function(user_word, word, limit)
+        if (diff == minDiff and len(waitList) == 0) or diff < minDiff:
+            waitList.append(word)
+            minDiff = diff
+    if len(waitList) > 0:
+        return waitList[len(waitList) - 1]
+    else:
+        return user_word
     # END PROBLEM 5
 
 
@@ -84,32 +122,46 @@ def sphinx_swap(start, goal, limit):
     their lengths.
     """
     # BEGIN PROBLEM 6
-    assert False, 'Remove this line'
+    def helper(f, t, l):
+        if f == t:
+            return 0
+        elif len(f) == len(t):
+            if len(f) == 1:
+                return 1
+            else:
+                tmp = helper(f[:1], t[:1], l)
+                l -= tmp
+                if l < 0:
+                    return limit + 1
+                return tmp + helper(f[1:], t[1:], l)
+        else:
+            gap = abs(len(f) - len(t))
+            if len(f) > len(t):
+                f = f[:len(t)]
+            else:
+                t = t[:len(f)]
+        return helper(f, t, l - gap) + gap
+    return helper(start, goal, limit)
     # END PROBLEM 6
 
 
 def feline_fixes(start, goal, limit):
     """A diff function that computes the edit distance from START to GOAL."""
-    assert False, 'Remove this line'
+    sl = len(start)
+    gl = len(goal)
+    end_eq = lambda a,b: 0 if a == b else 1
 
-    if ______________: # Fill in the condition
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
-
-    elif ___________: # Feel free to remove or add additional cases
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
-
-    else:
-        add_diff = ...  # Fill in these lines
-        remove_diff = ... 
-        substitute_diff = ... 
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
-
+    def lev(slen, glen, l):
+        if l < 0:
+            return limit + 1
+        if slen * glen == 0:
+            return max(slen, glen)
+        add_diff = lev(slen - 1, glen, l - 1) + 1
+        remove_diff = lev(slen, glen - 1, l - 1) + 1
+        tmp = end_eq(start[slen - 1], goal[glen - 1])
+        substitute_diff = lev(slen - 1, glen - 1, l - tmp) + tmp
+        return min(add_diff, remove_diff, substitute_diff)
+    return lev(sl ,gl, limit)
 
 def final_diff(start, goal, limit):
     """A diff function. If you implement this function, it will be used."""
@@ -125,6 +177,15 @@ def report_progress(typed, prompt, id, send):
     """Send a report of your id and progress so far to the multiplayer server."""
     # BEGIN PROBLEM 8
     "*** YOUR CODE HERE ***"
+    count = 0
+    for i in range(len(typed)):
+        if typed[i] == prompt[i]:
+            count += 1
+        else:
+            break
+    pgs = count / len(prompt)
+    send({"id": id, "progress": pgs})
+    return pgs
     # END PROBLEM 8
 
 
@@ -151,6 +212,14 @@ def time_per_word(times_per_player, words):
     """
     # BEGIN PROBLEM 9
     "*** YOUR CODE HERE ***"
+    times = []
+    for player in times_per_player:
+        tmp = []
+        for i in range(1, len(player)):
+            tmp.append(player[i] - player[i - 1])
+        times.append(tmp)
+
+    return game(words, times)
     # END PROBLEM 9
 
 
@@ -166,15 +235,32 @@ def fastest_words(game):
     words = range(len(all_words(game)))    # An index for each word
     # BEGIN PROBLEM 10
     "*** YOUR CODE HERE ***"
+    ret = []
+    for _ in players:
+        ret.append([])
+    for wordIndex in words:
+        minTime = time(game, 0, wordIndex)
+        minIndex = 0
+        for playerIndex in players[1:]:
+            thisTime = time(game, playerIndex, wordIndex)
+            if thisTime < minTime:
+                minIndex = playerIndex
+                minTime = thisTime
+        ret[minIndex].append(word_at(game, wordIndex))
+    return ret
     # END PROBLEM 10
 
 
 def game(words, times):
     """A data abstraction containing all words typed and their times."""
-    assert all([type(w) == str for w in words]), 'words should be a list of strings'
-    assert all([type(t) == list for t in times]), 'times should be a list of lists'
-    assert all([isinstance(i, (int, float)) for t in times for i in t]), 'times lists should contain numbers'
-    assert all([len(t) == len(words) for t in times]), 'There should be one word per time.'
+    assert all([type(w) == str for w in words]
+               ), 'words should be a list of strings'
+    assert all([type(t) == list for t in times]
+               ), 'times should be a list of lists'
+    assert all([isinstance(i, (int, float))
+                for t in times for i in t]), 'times lists should contain numbers'
+    assert all([len(t) == len(words) for t in times]
+               ), 'There should be one word per time.'
     return [words, times]
 
 
@@ -205,6 +291,7 @@ def game_string(game):
     """A helper function that takes in a game object and returns a string representation of it"""
     return "game(%s, %s)" % (game[0], game[1])
 
+
 enable_multiplayer = False  # Change to True when you
 
 
@@ -216,7 +303,7 @@ enable_multiplayer = False  # Change to True when you
 def run_typing_test(topics):
     """Measure typing speed and accuracy on the command line."""
     paragraphs = lines_from_file('data/sample_paragraphs.txt')
-    select = lambda p: True
+    def select(p): return True
     if topics:
         select = about(topics)
     i = 0
