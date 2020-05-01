@@ -45,11 +45,13 @@ def planet(size):
     """Construct a planet of some size."""
     assert size > 0
     "*** YOUR CODE HERE ***"
+    return ['planet', size]
 
 def size(w):
     """Select the size of a planet."""
     assert is_planet(w), 'must call size on a planet'
     "*** YOUR CODE HERE ***"
+    return w[1]
 
 def is_planet(w):
     """Whether w is a planet."""
@@ -98,6 +100,18 @@ def balanced(m):
     False
     """
     "*** YOUR CODE HERE ***"
+    if is_planet(m):
+        return True
+
+    def thisLevelBalanced():
+        lWeight = total_weight(end(left(m)))
+        rWeight = total_weight(end(right(m)))
+        lLength = length(left(m))
+        rLength = length(right(m))
+
+        return lWeight * lLength == rWeight * rLength
+
+    return thisLevelBalanced() and balanced(end(left(m))) and balanced(end(right(m)))
 
 def totals_tree(m):
     """Return a tree representing the mobile with its total weight at the root.
@@ -125,6 +139,10 @@ def totals_tree(m):
           2
     """
     "*** YOUR CODE HERE ***"
+    if is_planet(m):
+        return tree(size(m))
+
+    return tree(total_weight(m), [totals_tree(end(left(m))), totals_tree(end(right(m)))])
 
 def replace_leaf(t, old, replacement):
     """Returns a new tree where every leaf value equal to old has
@@ -156,6 +174,13 @@ def replace_leaf(t, old, replacement):
     True
     """
     "*** YOUR CODE HERE ***"
+    if is_leaf(t):
+        if label(t) == old:
+            return tree(replacement)
+        else:
+            return t
+    else:
+        return tree(label(t), [replace_leaf(br, old, replacement) for br in branches(t)])
 
 def make_withdraw(balance, password):
     """Return a password-protected withdraw function.
@@ -186,6 +211,29 @@ def make_withdraw(balance, password):
     True
     """
     "*** YOUR CODE HERE ***"
+    tryTime = 0
+    wrongPasswd = []
+    def withDraw(amount, inputPasswd):
+        nonlocal balance
+        nonlocal password
+        nonlocal tryTime
+        if tryTime == 3:
+            return 'Your account is locked. Attempts: ' + str(wrongPasswd)
+        if inputPasswd != password:
+            tryTime += 1
+            if tryTime <= 3:
+                wrongPasswd.append(inputPasswd)
+                return 'Incorrect password'
+            
+            return 'Your account is locked. Attempts: ' + str(wrongPasswd)
+        elif amount > balance:
+            return 'Insufficient funds'
+        
+        balance -= amount
+        return balance
+
+    return withDraw
+
 
 def make_joint(withdraw, old_pass, new_pass):
     """Return a password-protected withdraw function that has joint access to
@@ -226,7 +274,17 @@ def make_joint(withdraw, old_pass, new_pass):
     "Your account is locked. Attempts: ['my', 'secret', 'password']"
     """
     "*** YOUR CODE HERE ***"
+    error = withdraw(0, old_pass)
+    if type(error) == str:
+        return error
 
+    def newWithDraw(amount, password):
+        if password == new_pass:
+            return withdraw(amount, old_pass)
+        
+        return withdraw(amount, password)
+    
+    return newWithDraw
 
 
 ## Tree Methods ##
@@ -305,10 +363,12 @@ def interval(a, b):
 def lower_bound(x):
     """Return the lower bound of interval x."""
     "*** YOUR CODE HERE ***"
+    return x[0]
 
 def upper_bound(x):
     """Return the upper bound of interval x."""
     "*** YOUR CODE HERE ***"
+    return x[1]
 
 def str_interval(x):
     """Return a string representation of interval x.
@@ -335,12 +395,15 @@ def sub_interval(x, y):
     """Return the interval that contains the difference between any value in x
     and any value in y."""
     "*** YOUR CODE HERE ***"
+    negative_y = interval(-upper_bound(y), -lower_bound(y))
+    return add_interval(x, negative_y)
 
 def div_interval(x, y):
     """Return the interval that contains the quotient of any value in x divided by
     any value in y. Division is implemented as the multiplication of x by the
     reciprocal of y."""
     "*** YOUR CODE HERE ***"
+    assert not (lower_bound(y) <= 0 <= upper_bound(y))
     reciprocal_y = interval(1/upper_bound(y), 1/lower_bound(y))
     return mul_interval(x, reciprocal_y)
 
@@ -366,3 +429,10 @@ def quadratic(x, a, b, c):
     '0 to 10'
     """
     "*** YOUR CODE HERE ***"
+    para = (-b) / (2 * a)
+    f = lambda x : a * (x**2) + b * x + c
+    l, u, p = map(f, (lower_bound(x), upper_bound(x), para))
+    if para >= lower_bound(x) and para <= upper_bound(x):
+        return interval(min(l, u, p), max(l, u, p))
+    else:
+        return interval(min(l, u), max(l, u))
