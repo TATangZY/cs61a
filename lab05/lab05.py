@@ -16,6 +16,11 @@ def couple(lst1, lst2):
     """
     assert len(lst1) == len(lst2)
     "*** YOUR CODE HERE ***"
+    ret = []
+    for i in range(len(lst1)):
+        ret.append([lst1[i], lst2[i]])
+
+    return ret
 
 from math import sqrt
 def distance(city1, city2):
@@ -30,6 +35,12 @@ def distance(city1, city2):
     5.0
     """
     "*** YOUR CODE HERE ***"
+    lat1 = get_lat(city1)
+    lon1 = get_lon(city1)
+    lat2 = get_lat(city2)
+    lon2 = get_lon(city2)
+
+    return sqrt(abs(lat1 - lat2)**2 + abs(lon1 - lon2)**2)
 
 def closer_city(lat, lon, city1, city2):
     """
@@ -46,6 +57,14 @@ def closer_city(lat, lon, city1, city2):
     'Bucharest'
     """
     "*** YOUR CODE HERE ***"
+    tmp = make_city('tmp', lat, lon)
+    dis1 = distance(tmp, city1)
+    dis2 = distance(tmp, city2)
+
+    if dis1 < dis2:
+        return get_name(city1)
+    else:
+        return get_name(city2)
 
 def check_abstraction():
     """
@@ -145,6 +164,17 @@ def nut_finder(t):
     True
     """
     "*** YOUR CODE HERE ***"
+    if label(t) == 'nut':
+        return True
+    
+    if is_leaf(t):
+        return False
+    else:
+        for br in branches(t):
+            if nut_finder(br):
+                return True
+
+    return False
 
 def sprout_leaves(t, values):
     """Sprout new leaves containing the data in values at each leaf in
@@ -180,7 +210,10 @@ def sprout_leaves(t, values):
           2
     """
     "*** YOUR CODE HERE ***"
-
+    if is_leaf(t):
+        return tree(label(t), [tree(v) for v in values])
+    
+    return tree(label(t), [sprout_leaves(br, values) for br in branches(t)])
 
 # Tree ADT
 def tree(label, branches=[]):
@@ -274,6 +307,15 @@ def add_chars(w1, w2):
     True
     """
     "*** YOUR CODE HERE ***"
+    if not w1:
+        return w2
+
+    elif w1[0] == w2[0]:
+        return add_chars(w1[1:], w2[1:])
+    
+    return w2[0] + add_chars(w1, w2[1:])
+    
+
 
 def add_trees(t1, t2):
     """
@@ -311,6 +353,24 @@ def add_trees(t1, t2):
       5
     """
     "*** YOUR CODE HERE ***"
+    if not t1:
+        return t2
+    if not t2:
+        return t1
+    
+    newLabel = label(t1) + label(t2)
+    br1 = branches(t1)
+    br2 = branches(t2)
+    len1 = len(br1)
+    len2 = len(br2)
+
+    if len1 < len2:
+        br1 += [None for _ in range(len1, len2)]
+    elif len2 < len1:
+        br2 += [None for _ in range(len2, len1)]
+    
+
+    return tree(newLabel, [add_trees(child1, child2) for child1, child2 in zip(br1, br2)])
 
 # Shakespeare and Dictionaries
 def build_successors_table(tokens):
@@ -331,8 +391,9 @@ def build_successors_table(tokens):
     prev = '.'
     for word in tokens:
         if prev not in table:
-            "*** YOUR CODE HERE ***"
-        "*** YOUR CODE HERE ***"
+            table[prev] = [word]
+        else:
+            table[prev].append(word)
         prev = word
     return table
 
@@ -350,6 +411,9 @@ def construct_sent(word, table):
     result = ''
     while word not in ['.', '!', '?']:
         "*** YOUR CODE HERE ***"
+        result += word + ' '
+        word = random.choice(table[word])
+
     return result.strip() + word
 
 def shakespeare_tokens(path='shakespeare.txt', url='http://composingprograms.com/shakespeare.txt'):
@@ -363,8 +427,8 @@ def shakespeare_tokens(path='shakespeare.txt', url='http://composingprograms.com
         return shakespeare.read().decode(encoding='ascii').split()
 
 # Uncomment the following two lines
-# tokens = shakespeare_tokens()
-# table = build_successors_table(tokens)
+tokens = shakespeare_tokens()
+table = build_successors_table(tokens)
 
 def random_sent():
     import random
