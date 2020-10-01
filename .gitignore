@@ -134,3 +134,6 @@ tests/
 *.ok*
 ok
 debug.py
+*.js
+*.html
+*.css
