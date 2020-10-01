@@ -13,6 +13,14 @@ def link_to_list(link):
     []
     """
     "*** YOUR CODE HERE ***"
+    if link is Link.empty:
+        return []
+
+    ret = [link.first]
+    if link.rest is not Link.empty:
+        ret += link_to_list(link.rest)
+
+    return ret
 
 # Trees
 
@@ -26,6 +34,14 @@ def cumulative_mul(t):
     Tree(105, [Tree(15, [Tree(5)]), Tree(7)])
     """
     "*** YOUR CODE HERE ***"
+    for b in t.branches:
+        cumulative_mul(b)
+    
+    tmp = 1
+    for b in t.branches:
+        tmp *= b.label
+    
+    t.label *= tmp
 
 # Link List Class
 class Link:
